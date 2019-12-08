@@ -1,8 +1,20 @@
 import 'package:flutter/material.dart';
 import './todoList.dart';
+import './requests.dart';
+import './exercises.dart';
+import 'dart:convert';
 
 class TodoListState extends State<TodoList> {
-  List<String> _todoItems = [];
+  List<dynamic> _todoItems = [];
+
+  void fetchData() async {
+    Requests r = new Requests();
+    final responde = await r.fetchExercises();
+    if (responde.statusCode == 200) {
+      Exercises e = Exercises.fromJson(json.decode(responde.body));
+      e.monday.forEach((item) => setState(() => _todoItems.add(item)));
+    }      
+  }
 
   void _addItem(String text) {
     setState(() {
@@ -14,13 +26,43 @@ class TodoListState extends State<TodoList> {
     setState(() => _todoItems.removeAt(index));
   }
 
+  Widget _dropDownDays() {
+    return DropdownButton<String>(
+        value: '',
+        icon: Icon(Icons.arrow_downward),
+        iconSize: 24,
+        elevation: 16,
+        style: TextStyle(
+            color: Colors.deepPurple
+        ),
+        underline: Container(
+            height: 2,
+            color: Colors.deepPurpleAccent,
+        ),
+        onChanged: (String newValue) {
+          setState(() {
+            print(newValue);
+          });
+        },
+        items: <String>['One', 'Two', 'Free', 'Four']
+        .map<DropdownMenuItem<String>>((String value) {
+          return DropdownMenuItem<String>(
+              value: value,
+              child: Text(value),
+          );
+        })
+    .toList(),
+    );
+  }
+
   Widget _buildTodoList() {
     return new ListView.builder(
         itemBuilder: (context, index) {
           if (index < _todoItems.length) {
             return _buildTodoItem(_todoItems[index], index);
           }
-        });
+        }
+      );
   }
 
     Widget _buildTodoItem(String todoText, int index) {
@@ -29,22 +71,6 @@ class TodoListState extends State<TodoList> {
           onTap: () => _promptRemoveTodoItem(index),
       );
     }
-
-
-  @override
-  Widget build(BuildContext context) {
-    return new Scaffold(
-        appBar: new AppBar(
-            title: new Text('Gym todo')
-        ),
-        body: _buildTodoList(),
-        floatingActionButton: new FloatingActionButton(
-            onPressed: _pushAddTodoScreen,
-            tooltip: 'Add task',
-            child: new Icon(Icons.add)
-            )
-      );
-  }
 
   void _pushAddTodoScreen() {
   // Push this page onto the stack
@@ -96,5 +122,27 @@ class TodoListState extends State<TodoList> {
       );
     }
   );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ret = new Scaffold(
+        appBar: new AppBar(
+            title: new Text('Gym todo')
+        ),
+        body: _buildTodoList(),
+        floatingActionButton: new FloatingActionButton(
+            onPressed: _pushAddTodoScreen,
+            tooltip: 'Add task',
+            child: new Icon(Icons.add)
+            )
+      );
+    return ret;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    fetchData();
   }
 }
