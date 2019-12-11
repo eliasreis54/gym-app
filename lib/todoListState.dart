@@ -13,7 +13,8 @@ class TodoListState extends State<TodoList> {
     if (responde.statusCode == 200) {
       Exercises e = Exercises.fromJson(json.decode(responde.body));
       e.monday.forEach((item) => setState(() => _todoItems.add(item)));
-    }      
+      e.monday.forEach((item) => print(item));
+    }
   }
 
   void _addItem(String text) {
@@ -130,7 +131,17 @@ class TodoListState extends State<TodoList> {
         appBar: new AppBar(
             title: new Text('Gym todo')
         ),
-        body: _buildTodoList(),
+        // body: Text('ola mundo'),
+        body: Column(
+            children: <Widget>[
+              Text('teste'),
+              Expanded(
+                  child: Container(
+                    child: _buildTodoList()
+                  )
+              )
+            ]
+        ),
         floatingActionButton: new FloatingActionButton(
             onPressed: _pushAddTodoScreen,
             tooltip: 'Add task',
